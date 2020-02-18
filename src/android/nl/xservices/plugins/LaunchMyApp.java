@@ -1,5 +1,7 @@
 package nl.xservices.plugins;
 
+import android.content.Context;
+
 import android.content.Intent;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaActivity;
@@ -15,12 +17,17 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URLEncoder;
 import java.util.Locale;
+import java.net.URISyntaxException;
+
 
 public class LaunchMyApp extends CordovaPlugin {
 
   private static final String ACTION_CHECKINTENT = "checkIntent";
   private static final String ACTION_CLEARINTENT = "clearIntent";
   private static final String ACTION_GETLASTINTENT = "getLastIntent";
+  public static final String CH_BEKBPAY_TWINTREGISTRATION = "ch.bekb.BEKBApp.TWINTREGISTRATION";
+  private static final String OPEN_EXTERNAL_APP = "openExternalApp";
+
 
   private String lastIntentString = null;
 
@@ -42,50 +49,50 @@ public class LaunchMyApp extends CordovaPlugin {
 
   @Override
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-    if (ACTION_CLEARINTENT.equalsIgnoreCase(action)) {
+    if (ACTION_CHECKINTENT.equalsIgnoreCase(action)) {
       final Intent intent = ((CordovaActivity) this.webView.getContext()).getIntent();
-      if (resetIntent){
-        intent.setData(null);
-      }
-      return true;
-    } else if (ACTION_CHECKINTENT.equalsIgnoreCase(action)) {
-      final Intent intent = ((CordovaActivity) this.webView.getContext()).getIntent();
-      final String intentString = intent.getDataString();
-      if (intentString != null && intent.getScheme() != null) {
-        lastIntentString = intentString;
-        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, intent.getDataString()));
+      final String intentString = intent.getAction();
+      final String token = intent.getStringExtra("token");
+      if (CH_BEKBPAY_TWINTREGISTRATION.equals(intentString) && token != null) {
+        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, "bekbapp://com.edorex.BEKBPay/twintregistration?token=" + token));
       } else {
         callbackContext.error("App was not started via the launchmyapp URL scheme. Ignoring this errorcallback is the best approach.");
       }
       return true;
-    } else if (ACTION_GETLASTINTENT.equalsIgnoreCase(action)) {
-      if(lastIntentString != null) {
-        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, lastIntentString));
-      } else {
-        callbackContext.error("No intent received so far.");
-      }
-      return true;
-    } else {
-      callbackContext.error("This plugin only responds to the " + ACTION_CHECKINTENT + " action.");
-      return false;
+    } else if (OPEN_EXTERNAL_APP.equalsIgnoreCase(action)) {
+      openExternalApp (args, callbackContext);
     }
+    return false;
   }
+
 
   @Override
   public void onNewIntent(Intent intent) {
-    final String intentString = intent.getDataString();
-    if (intentString != null && intent.getScheme() != null) {
-      if (resetIntent){
-        intent.setData(null);
-      }
-      try {
-        StringWriter writer = new StringWriter(intentString.length() * 2);
-        escapeJavaStyleString(writer, intentString, true, false);
-        webView.loadUrl("javascript:handleOpenURL('" + URLEncoder.encode(writer.toString()) + "');");
-      } catch (IOException ignore) {
-      }
+    final String intentString = intent.getAction();
+    final String token = intent.getStringExtra("token");
+    if (CH_BEKBPAY_TWINTREGISTRATION.equals(intentString) && token != null) {
+      webView.loadUrl("javascript:handleOpenURL('bekbapp://com.edorex.BEKBPay/twintregistration?token=" + token + "');");
     }
   }
+
+
+  public void openExternalApp (final JSONArray args, final CallbackContext callbackContext) {
+    try {
+      Intent intent = Intent.parseUri("intent://registerResult/#Intent;scheme=ch.twint.payment;package=ch.twint.payment;end", 0);
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      Context context = this.cordova.getActivity().getApplicationContext();
+      context.startActivity(intent);
+      callbackContext.success("Opened");
+    } catch (URISyntaxException e) {
+      callbackContext.error("Not opened.");
+    }
+  }
+
+
+  private static String hex(char ch) {
+    return Integer.toHexString(ch).toUpperCase(Locale.ENGLISH);
+  }
+
 
   // Taken from commons StringEscapeUtils
   private static void escapeJavaStyleString(Writer out, String str, boolean escapeSingleQuote,
@@ -168,7 +175,5 @@ public class LaunchMyApp extends CordovaPlugin {
     }
   }
 
-  private static String hex(char ch) {
-    return Integer.toHexString(ch).toUpperCase(Locale.ENGLISH);
-  }
 }
+

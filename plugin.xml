@@ -65,11 +65,11 @@
 
     <config-file target="AndroidManifest.xml" parent="/manifest/application/activity">
       <intent-filter>
-        <action android:name="android.intent.action.VIEW" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <category android:name="android.intent.category.BROWSABLE" />
-        <data android:scheme="$URL_SCHEME"/>
+        <!--com.edorex.BEKBPay.TWINTREGISTRATION - dev bundle; ch.bekb.BEKBApp.TWINTREGISTRATION - production-->
+        <action android:name="ch.bekb.BEKBApp.TWINTREGISTRATION" />
+        <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
+
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
