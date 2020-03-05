@@ -67,7 +67,7 @@
       <intent-filter>
         <!--com.edorex.BEKBPay.TWINTREGISTRATION - dev bundle; ch.bekb.BEKBApp.TWINTREGISTRATION - production-->
         <!--<action android:name="ch.bekb.BEKBApp.TWINTREGISTRATION" />-->
-        <action android:name="$URL_SCHEME_ACTION" />
+        <action android:name="$ACTION" />
         <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
 
