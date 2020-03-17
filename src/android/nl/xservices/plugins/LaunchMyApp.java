@@ -54,6 +54,7 @@ public class LaunchMyApp extends CordovaPlugin {
       final String intentString = intent.getAction();
       final String token = intent.getStringExtra("token");
       if (intentString != null && intentString.contains(CH_BEKBPAY_TWINTREGISTRATION) && token != null) {
+        ((CordovaActivity) this.webView.getContext()).getIntent().removeExtra("token");
         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, "bekbapp://com.edorex.BEKBPay/twintregistration?token=" + token));
       } else {
         callbackContext.error("App was not started via the launchmyapp URL scheme. Ignoring this errorcallback is the best approach.");
